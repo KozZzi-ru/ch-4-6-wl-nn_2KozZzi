@@ -27,7 +27,6 @@ KozZzi adopted
 **Добавленные файлы:**
 - `.github/workflows/draw_keymaps.yaml` - Reusable workflow для генерации SVG из keymap
 - `keymap-drawer/config.yaml` - Конфигурация визуализации (размеры клавиш, цвета, стили)
-- `keymap-drawer/charybdis.yaml` - Описание физического layout клавиатуры
 
 **Изменения в существующих файлах:**
 - `.github/workflows/build.yml` - Добавлен job `keymap_images`, который запускается после сборки прошивки
@@ -37,7 +36,8 @@ KozZzi adopted
 2. Сначала собирается прошивка (job `build`)
 3. Затем запускается `keymap_images` job, который:
    - Парсит файл `config/charybdis.keymap`
-   - Использует конфигурацию из `keymap-drawer/config.yaml` и `keymap-drawer/charybdis.yaml`
+   - Использует конфигурацию из `keymap-drawer/config.yaml`
+   - Использует физический layout из `config/info.json`
    - Генерирует файлы `keymap-drawer/charybdis.svg` и `keymap-drawer/charybdis.yaml`
    - Автоматически коммитит изменения (amend к последнему коммиту)
 
