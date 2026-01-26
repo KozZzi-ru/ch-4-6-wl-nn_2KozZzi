@@ -1,5 +1,55 @@
+name: Build ZMK firmware
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
+  keymap_images:
+    permissions:
+      contents: write
+    uses: ./.github/workflows/draw_keymaps.yaml
+    with:
+      destination: 'both'
+      artifact_name: 'keymap_raw_files'
+    
   build:
+    needs: keymap_images
     uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main
+    with:
+      archive_name: firmware_BLK
+      
+  package_with_keymap:
+    needs: [build, keymap_images]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          
+      - name: List all downloaded files
+        run: |
+          echo "=== All artifacts structure ==="
+          ls -lah artifacts/
+          find artifacts/ -type f
+          
+      - name: Prepare package folder
+        run: |
+          mkdir -p firmware_BLK_SVG
+          
+          # Copy UF2 files
+          if [ -d "artifacts/firmware_BLK" ]; then
+            find artifacts/firmware_BLK -name "*.uf2" -exec cp {} firmware_BLK_SVG/ \;
+          fi
+          
+          # Copy SVG file
+          if [ -d "artifacts/keymap_raw_files" ]; then
+            find artifacts/keymap_raw_files -name "*.svg" -exec cp {} firmware_BLK_SVG/ \;
+          fi
+          
+          echo "=== Package contents ==="
+          ls -lah firmware_BLK_SVG/
+          
+      - name: Upload final package
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware_BLK_SVG
+          path: firmware_BLK_SVG/
