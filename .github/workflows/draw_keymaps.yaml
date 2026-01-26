@@ -87,11 +87,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # So the reference to the parent commit is available when amending
-          # See:
-          # - https://github.com/stefanzweifel/git-auto-commit-action#using---amend-and---no-edit-as-commit-options
-          # - https://github.com/stefanzweifel/git-auto-commit-action/issues/159#issuecomment-845347950
-          # - https://github.com/actions/checkout
+          ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: ${{ (inputs.amend_commit == true && 2) || 1 }}
           submodules: recursive
 
@@ -220,11 +216,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           file_pattern: "${{ inputs.output_folder }}/*.svg ${{ inputs.output_folder }}/*.yaml"
-          # So the previous commit is amended instead of creating a new one when desired
-          # See:
-          # - https://github.com/stefanzweifel/git-auto-commit-action#using---amend-and---no-edit-as-commit-options
-          # - https://github.com/stefanzweifel/git-auto-commit-action/issues/159#issuecomment-845347950
-          # - https://github.com/actions/checkout
           commit_message: "${{ (inputs.amend_commit == true && steps.last_commit_message.outputs.msg) || inputs.commit_message }}"
           commit_options: "${{ (inputs.amend_commit == true && '--amend --no-edit') || '' }}"
           push_options: "${{ (inputs.amend_commit == true && '--force-with-lease') || '' }}"
