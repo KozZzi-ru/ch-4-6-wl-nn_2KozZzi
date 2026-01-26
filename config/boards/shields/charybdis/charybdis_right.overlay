@@ -5,6 +5,8 @@
  */
  
 #include "charybdis.dtsi"
+#include <dt-bindings/zmk/keys.h>
+#include <input/processors.dtsi>
 
 &default_transform {
     col-offset = <6>;
@@ -59,7 +61,6 @@
         /* optional features */
         scroll-layers = <0>;   /* скролл "по умолчанию" на базовом слое */
         snipe-layers = <3>;    /* режим точности, когда активен слой 3 */
-        /* automouse-layer удалён: никаких авто-поднятий слоя при движении */
     };
 };
 
@@ -67,5 +68,14 @@
   trackball_listener {
     compatible = "zmk,input-listener";
     device = <&trackball>;
+    
+    /* Базовая скорость скролла на слое 0: стандартная (×1) */
+    input-processors = <&zip_scroll_scaler 1 1>;
+    
+    /* Медленный точный скролл на слое 1 (num_and_fun): ×0.5 */
+    slow_scroll_layer1: slow_scroll_layer1 {
+        layers = <1>;
+        input-processors = <&zip_scroll_scaler 1 2>;
+    };
   };
 };
