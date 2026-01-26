@@ -54,6 +54,8 @@ layers:
   - {t: ENTER, h: corrections}
   - SPACE
   - LEFT ALT
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
   - BACK SPACE
   - RSHIFT
   - ENTER
@@ -108,6 +110,8 @@ layers:
   - LEFT ALT
   - {t: ▽, type: trans}
   - {type: held}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
@@ -171,6 +175,8 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
   snipe:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
@@ -225,6 +231,8 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - M CLK
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
@@ -285,6 +293,8 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - DELETE
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
   set_bt:
   - {t: ▽, type: trans}
   - {t: BT, h: '0'}
@@ -334,6 +344,8 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {type: held}
+  - {t: ▽, type: trans}
+  - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
