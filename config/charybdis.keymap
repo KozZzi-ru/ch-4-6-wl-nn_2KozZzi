@@ -214,7 +214,7 @@
 &trans  &trans     &trans     &trans  &trans     &trans         &trans  &trans  &trans  &trans  &trans           &trans
 &trans  &trans     &trans     &trans  &trans     &trans         &trans  &trans  &trans  &trans  &trans           &trans
 &trans  &trans     &trans     &trans  &trans     &trans         &trans  &trans  &trans  &trans  &lt 3 SCROLLLOCK &trans  
-        &mkp LCLK  &mkp RCLK  &trans  &trans     &mkp MCLK      &trans  &trans  &trans  &trans  &trans
+        &mkp MCLK  &mkp RCLK  &trans  &mkp LCLK  &trans         &trans  &trans  &trans  &trans  &trans
             >;
         };
 
@@ -224,7 +224,7 @@
 &trans  &trans     &trans     &trans  &trans     &trans         &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans     &trans     &trans  &trans     &trans         &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans     &trans     &trans  &trans     &trans         &trans  &trans  &trans  &trans  &trans  &trans  
-        &mkp LCLK  &mkp RCLK  &trans  &trans     &mkp MCLK      &trans  &trans  &trans  &trans  &trans
+        &mkp MCLK  &mkp RCLK  &trans  &mkp LCLK  &trans         &trans  &trans  &trans  &trans  &trans
             >;
         };
 
