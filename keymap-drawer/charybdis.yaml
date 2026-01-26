@@ -49,16 +49,16 @@ layers:
   - DOT
   - FSLH
   - auto_mouse
-  - LGUI
   - {t: AL CALCULATOR, h: num_and_fun}
   - {t: ENTER, h: corrections}
-  - SPACE
   - LEFT ALT
+  - LGUI
+  - SPACE
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
+  - ENTER
   - BACK SPACE
   - RSHIFT
-  - ENTER
   num_and_fun:
   - {t: ▽, type: trans}
   - F1
@@ -108,8 +108,8 @@ layers:
   - '3'
   - KP DOT
   - LEFT ALT
-  - {t: ▽, type: trans}
   - {type: held}
+  - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
@@ -286,8 +286,8 @@ layers:
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
-  - {t: ▽, type: trans}
   - {type: held}
+  - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
   - {t: ▽, type: trans}
