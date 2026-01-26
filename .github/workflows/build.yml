@@ -12,4 +12,6 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/draw_keymaps.yaml
+    with:
+      west_config_path: "config"
     # credit to https://github.com/caksoylar/keymap-drawer
