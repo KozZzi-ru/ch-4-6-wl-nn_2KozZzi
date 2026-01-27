@@ -4,7 +4,104 @@
 KozZzi adopted
 
 Версия прошивки с плавным скролом  
-Переделана под МК2 (BLACK), навален мой кеймаппинг
+Переделана под МЖ2 (BLACK), навален мой кеймаппинг
+
+---
+
+## Изменения в бранче `feature/layer-scroll-speed`
+
+### Разная скорость скролла на разных слоях
+
+Добавлена возможность **изменять скорость скролла трекбола в зависимости от активного слоя** с использованием ZMK Input Processors.
+
+#### Настройки скорости по слоям:
+
+| Слой | Название | Скорость скролла |
+|------|------------------|---------------------|
+| 0 | QWERTY | **Стандартная** (1:1) |
+| 1 | num_and_fun | **В 3 раза медленнее** (1:3) |
+| 2-5 | остальные | Стандартная (по умолчанию) |
+
+#### Как это работает:
+
+- **Базовый слой (QWERTY):** При работе на основном слое скролл работает с обычной скоростью
+- **Слой 1 (num_and_fun):** При переключении на этот слой (удержанием клавиши Calculator) скролл замедляется в 3 раза
+
+#### Применение:
+
+Медленный скролл полезен для:
+- Точной навигации по документам
+- Просмотра кода (построчного скролла)
+- Работы с таблицами
+- Чтения длинных текстов
+
+#### Техническая реализация:
+
+Используется **ZMK Input Processor `zip_scroll_scaler`** — встроенный компонент для масштабирования скорости скролла.
+
+**Синтаксис:**
+```devicetree
+&zip_scroll_scaler <multiplier> <divisor>
+```
+
+**Примеры:**
+- `&zip_scroll_scaler 1 1` — стандартная скорость (100%)
+- `&zip_scroll_scaler 1 2` — половинная скорость (50%)
+- `&zip_scroll_scaler 1 3` — скорость в 3 раза медленнее (33%)
+- `&zip_scroll_scaler 2 1` — удвоенная скорость (200%)
+
+#### Измененные файлы:
+
+**`config/boards/shields/charybdis/charybdis_right.overlay`**
+
+Добавлена конфигурация `trackball_listener` с настройкой Input Processors для разных слоёв:
+
+```devicetree
+/ {
+  trackball_listener {
+    compatible = "zmk,input-listener";
+    device = <&trackball>;
+
+    /* Базовый слой (0 - QWERTY): стандартная скорость скролла */
+    base_layer {
+      layers = <0>;
+      input-processors = <&zip_scroll_scaler 1 1>;
+    };
+
+    /* Слой 1 (num_and_fun): скорость скролла уменьшена в 3 раза */
+    slow_scroll_layer {
+      layers = <1>;
+      input-processors = <&zip_scroll_scaler 1 3>;
+    };
+  };
+};
+```
+
+#### Настройка под свои предпочтения:
+
+Если вы хотите изменить скорость скролла:
+
+1. **Сделать медленнее:** увеличьте divisor (третий параметр)
+   - `<&zip_scroll_scaler 1 5>` — в 5 раз медленнее
+   - `<&zip_scroll_scaler 1 10>` — в 10 раз медленнее
+
+2. **Сделать быстрее:** увеличьте multiplier (второй параметр)
+   - `<&zip_scroll_scaler 2 1>` — в 2 раза быстрее
+   - `<&zip_scroll_scaler 3 1>` — в 3 раза быстрее
+
+3. **Добавить настройки для других слоёв:**
+   ```devicetree
+   another_layer {
+     layers = <2>;  // номер слоя
+     input-processors = <&zip_scroll_scaler 1 5>;  // в 5 раз медленнее
+   };
+   ```
+
+#### Ссылки на документацию:
+
+- [ZMK Input Processors Overview](https://zmk.dev/docs/keymaps/input-processors)
+- [ZMK Scaler Input Processor](https://zmk.dev/docs/keymaps/input-processors/scaler)
+- [ZMK Input Processor Usage](https://zmk.dev/docs/keymaps/input-processors/usage)
 
 ---
 
@@ -63,9 +160,9 @@ KozZzi adopted
 **Настройки:**
 - **Размеры клавиш:** 60x56 px
 - **Разрыв между половинами:** 30 px
-- **Тема:** auto (автоматическая смена светлой/темной)
+- **Тема:** auto (автоматическая смена светлой/тёмной)
 - **Комбо-диаграммы:** отдельные, масштаб x2
-- **Маппинг ZMK-клавиш:** сокращенные названия
+- **Маппинг ZMK-клавиш:** сокращённые названия
 
 ### 3. `config/charybdis.json`
 
@@ -74,7 +171,7 @@ KozZzi adopted
 **Что содержит:**
 - **Координаты** каждой клавиши (x, y, rotation)
 - **Два layout:** `default_transform` и `charybdis_6col_layout`
-- **56 клавиш:** 48 основных + 8 тамбовых (с учетом трекбола)
+- **56 клавиш:** 48 основных + 8 тамбовых (с учётом трекбола)
 
 **Назначение:**
 - Используется `keymap-drawer` для определения позиций клавиш
@@ -82,7 +179,7 @@ KozZzi adopted
 
 ---
 
-## Измененные файлы
+## Изменённые файлы
 
 ### `.github/workflows/build.yml`
 
@@ -90,8 +187,8 @@ KozZzi adopted
 
 1. **Порядок джобов:**
    - `keymap_images` запускается **первым**
-   - `build` ждет `keymap_images`
-   - `package_with_keymap` ждет обоих
+   - `build` ждёт `keymap_images`
+   - `package_with_keymap` ждёт обоих
 
 2. **Добавлен `destination: 'both'`:**
    - SVG сохраняется и в репозиторий, и в артефакты
@@ -136,7 +233,7 @@ KozZzi adopted
 
 ### Кастомные биндинги:
 
-Workflow распознает кастомные ZMK-биндинги:
+Workflow распознаёт кастомные ZMK-биндинги:
 - **Мышь:** `&mkp LCLK`, `&mkp RCLK`, `&mkp MCLK`, `&mkp MB4`, `&mkp MB5`
 - **Движение мыши:** `&mmv MOVE_UP`, `&mmv MOVE_DOWN`, `&mmv MOVE_LEFT`, `&mmv MOVE_RIGHT`
 - **Скролл:** `&msc MOVE_UP`, `&msc MOVE_DOWN`, `&msc MOVE_LEFT`, `&msc MOVE_RIGHT`
