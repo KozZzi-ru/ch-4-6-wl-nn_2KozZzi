@@ -4,7 +4,7 @@
 KozZzi adopted
 
 Версия прошивки с плавным скролом  
-Переделана под МЖ2 (BLACK), навален мой кеймаппинг
+Переделана под МК2 (BLACK), навален мой кеймаппинг
 
 ---
 
@@ -101,6 +101,14 @@ manifest:
 };
 
 / {
+  /* ВАЖНО: Определение scroll scaler Input Processor */
+  zip_scroll_scaler: zip_scroll_scaler {
+    compatible = "zmk,input-processor-scaler";
+    #input-processor-cells = <2>;
+    type = <INPUT_EV_REL>;
+    codes = <INPUT_REL_WHEEL>, <INPUT_REL_HWHEEL>;
+  };
+
   trackball_listener {
     compatible = "zmk,input-listener";
     device = <&trackball>;
@@ -130,8 +138,9 @@ manifest:
 - `compatible`: `"pixart,pmw3610"` → `"pixart,pmw3610-alt"`
 - Добавлен `cpi = <600>`
 - Добавлены `evt-type`, `x-input-code`, `y-input-code`
-- Удалены старые `scroll-layers`, `snipe-layers` (теперь через Input Processors)
+- **ВАЖНО:** Добавлено определение `zip_scroll_scaler` (обязательно для работы!)
 - Добавлен `trackball_listener` с настройками по слоям
+- Удалены старые `scroll-layers`, `snipe-layers`
 
 ---
 
@@ -142,12 +151,11 @@ manifest:
 ```conf
 CONFIG_SPI=y
 CONFIG_INPUT=y
-CONFIG_ZMK_POINTING=y
 CONFIG_NFCT_PINS_AS_GPIOS=y
 CONFIG_ZMK_EXT_POWER=y
 
 # badjeff PMW3610-ALT driver
-CONFIG_PMW3610_ALT=y  # ИЗМЕНЕНО: было CONFIG_PMW3610
+CONFIG_PMW3610_ALT=y
 
 # Минимальный интервал отчётов
 CONFIG_PMW3610_ALT_REPORT_INTERVAL_MIN=12
@@ -160,6 +168,14 @@ CONFIG_PMW3610_ALT_INIT_POWER_UP_EXTRA_DELAY_MS=300
 - `CONFIG_PMW3610` → `CONFIG_PMW3610_ALT`
 - Удалены старые параметры: `CONFIG_PMW3610_CPI`, `CONFIG_PMW3610_ORIENTATION_90`, `CONFIG_PMW3610_SCROLL_TICK` и т.д.
 - Добавлены новые параметры для badjeff драйвера
+
+---
+
+#### 4. `README.md`
+
+- Добавлена полная документация по Input Processors
+- Примеры настройки скорости
+- Инструкции по кастомизации
 
 ---
 
