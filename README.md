@@ -1,10 +1,266 @@
-# ch-4-6-wl-nn_2KozZzi - полностью рабочий на ChBLK, с моим кеймапом и генерацией раскладки в charybdis.svg (кривой тамб кластер)
+# ch-4-6-wl-nn_2KozZzi - полностью рабочий на ChBLK, с моим кеймапом и генерацией раскладки в charybdis.svg
 
 4-6 wireless zmk  
 KozZzi adopted
 
 Версия прошивки с плавным скролом  
-Переделана под МК2 (BLACK), навален мой кеймаппинг
+Переделана под МЖ2 (BLACK), навален мой кеймаппинг
+
+---
+
+## Изменения в бранче `feature/badjeff-scroll-layers`
+
+### Переход на badjeff/zmk-pmw3610-driver с поддержкой Input Processors
+
+В этом бранче прошивка **переключена с inorichi/zmk-pmw3610-driver на badjeff/zmk-pmw3610-driver**, который поддерживает **ZMK Input Processors** для гибкой настройки скорости скролла на разных слоях.
+
+#### Основные преимущества badjeff драйвера:
+
+✅ **Поддержка Input Processors** — возможность настройки разной скорости скролла на разных слоях  
+✅ **Настройки через device tree** — всё конфигурируется в `.overlay` файлах  
+✅ **Разделение sampling и reporting rate** — лучшая отзывчивость  
+✅ **Совместимость с split клавиатурами**  
+
+#### Настройки скорости скролла по слоям:
+
+| Слой | Название | Скорость скролла | Input Processor |
+|------|------------------|---------------------|------------------|
+| 0 | QWERTY (base) | **Стандартная** (100%) | `&zip_scroll_scaler 1 1` |
+| 1 | num_and_fun | **В 3 раза медленнее** (33%) | `&zip_scroll_scaler 1 3` |
+| 3 | snipe | Стандартная (100%) | `&zip_scroll_scaler 1 1` |
+
+#### Как это работает:
+
+- **Базовый слой (QWERTY):** Скролл работает с обычной скоростью
+- **Слой 1 (num_and_fun):** При удержании клавиши **Calculator** скорость скролла **автоматически замедляется в 3 раза**
+- **Слой 3 (snipe):** Режим точного наведения, стандартная скорость
+
+#### Применение:
+
+Медленный скролл полезен для:
+- Точной навигации по документам
+- Построчного просмотра кода
+- Работы с таблицами и спредшитами
+- Чтения длинных текстов
+
+---
+
+### Изменённые файлы
+
+#### 1. `config/west.yml`
+
+Переключение с `inorichi/zmk-pmw3610-driver` на `badjeff/zmk-pmw3610-driver`:
+
+```yaml
+manifest:
+  remotes:
+    - name: zmkfirmware
+      url-base: https://github.com/petejohanson
+    - name: badjeff  # НОВЫЙ remote
+      url-base: https://github.com/badjeff
+  projects:
+    - name: zmk
+      remote: zmkfirmware
+      revision: feat/pointers-move-scroll
+      import: app/west.yml
+    - name: zmk-pmw3610-driver
+      remote: badjeff  # ИЗМЕНЕНО: было inorichi
+      revision: main
+```
+
+**Что изменилось:**
+- Remote `inorichi` заменён на `badjeff`
+- Драйвер теперь берётся из https://github.com/badjeff/zmk-pmw3610-driver
+
+---
+
+#### 2. `config/boards/shields/charybdis/charybdis_right.overlay`
+
+Полная переделка конфигурации трекбола:
+
+```devicetree
+#include "charybdis.dtsi"
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+// ... (остальные настройки pinctrl, kscan)
+
+&spi0 {
+    trackball: trackball@0 {
+        status = "okay";
+        compatible = "pixart,pmw3610-alt";  // ИЗМЕНЕНО!
+        reg = <0>;
+        spi-max-frequency = <2000000>;
+        irq-gpios = <&gpio0 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        cpi = <600>;  // ДОБАВЛЕНО
+        
+        // НОВЫЕ параметры для badjeff драйвера
+        evt-type = <INPUT_EV_REL>;
+        x-input-code = <INPUT_REL_X>;
+        y-input-code = <INPUT_REL_Y>;
+    };
+};
+
+/ {
+  trackball_listener {
+    compatible = "zmk,input-listener";
+    device = <&trackball>;
+
+    /* Базовый слой 0: стандартная скорость */
+    base_layer {
+      layers = <0>;
+      input-processors = <&zip_scroll_scaler 1 1>;
+    };
+
+    /* Слой 1: скорость скролла в 3 раза медленнее */
+    slow_scroll_layer {
+      layers = <1>;
+      input-processors = <&zip_scroll_scaler 1 3>;
+    };
+
+    /* Слой 3: режим snipe */
+    snipe_layer {
+      layers = <3>;
+      input-processors = <&zip_scroll_scaler 1 1>;
+    };
+  };
+};
+```
+
+**Что изменилось:**
+- `compatible`: `"pixart,pmw3610"` → `"pixart,pmw3610-alt"`
+- Добавлен `cpi = <600>`
+- Добавлены `evt-type`, `x-input-code`, `y-input-code`
+- Удалены старые `scroll-layers`, `snipe-layers` (теперь через Input Processors)
+- Добавлен `trackball_listener` с настройками по слоям
+
+---
+
+#### 3. `config/boards/shields/charybdis/charybdis_right.conf`
+
+Обновление конфигурации для badjeff драйвера:
+
+```conf
+CONFIG_SPI=y
+CONFIG_INPUT=y
+CONFIG_ZMK_POINTING=y
+CONFIG_NFCT_PINS_AS_GPIOS=y
+CONFIG_ZMK_EXT_POWER=y
+
+# badjeff PMW3610-ALT driver
+CONFIG_PMW3610_ALT=y  # ИЗМЕНЕНО: было CONFIG_PMW3610
+
+# Минимальный интервал отчётов
+CONFIG_PMW3610_ALT_REPORT_INTERVAL_MIN=12
+
+# Дополнительная задержка при инициализации (nice_nano_v2)
+CONFIG_PMW3610_ALT_INIT_POWER_UP_EXTRA_DELAY_MS=300
+```
+
+**Что изменилось:**
+- `CONFIG_PMW3610` → `CONFIG_PMW3610_ALT`
+- Удалены старые параметры: `CONFIG_PMW3610_CPI`, `CONFIG_PMW3610_ORIENTATION_90`, `CONFIG_PMW3610_SCROLL_TICK` и т.д.
+- Добавлены новые параметры для badjeff драйвера
+
+---
+
+### Техническая реализация Input Processors
+
+#### Что такое `zip_scroll_scaler`?
+
+**`zip_scroll_scaler`** — это встроенный ZMK Input Processor, который масштабирует скорость скролла.
+
+**Синтаксис:**
+```devicetree
+&zip_scroll_scaler <multiplier> <divisor>
+```
+
+**Формула:** `Скорость = (Базовая скорость × multiplier) ÷ divisor`
+
+**Примеры:**
+- `&zip_scroll_scaler 1 1` — стандартная скорость (100%)
+- `&zip_scroll_scaler 1 2` — половинная скорость (50%)
+- `&zip_scroll_scaler 1 3` — скорость в 3 раза медленнее (33%)
+- `&zip_scroll_scaler 1 5` — скорость в 5 раз медленнее (20%)
+- `&zip_scroll_scaler 2 1` — удвоенная скорость (200%)
+- `&zip_scroll_scaler 3 1` — утроенная скорость (300%)
+
+---
+
+### Настройка под свои предпочтения
+
+#### Изменение скорости скролла
+
+Редактируйте `charybdis_right.overlay` в секции `trackball_listener`:
+
+**Сделать медленнее:**
+```devicetree
+slow_scroll_layer {
+  layers = <1>;
+  input-processors = <&zip_scroll_scaler 1 5>;  // в 5 раз медленнее
+};
+```
+
+**Сделать быстрее:**
+```devicetree
+fast_scroll_layer {
+  layers = <2>;
+  input-processors = <&zip_scroll_scaler 2 1>;  // в 2 раза быстрее
+};
+```
+
+**Добавить новый слой:**
+```devicetree
+custom_layer {
+  layers = <4>;
+  input-processors = <&zip_scroll_scaler 1 10>;  // очень медленный
+};
+```
+
+#### Изменение CPI (чувствительности)
+
+Редактируйте `charybdis_right.overlay` в секции `trackball`:
+
+```devicetree
+trackball: trackball@0 {
+    cpi = <800>;  // Измените значение (200-3200)
+};
+```
+
+#### Добавление инверсии осей
+
+Для инверсии осей X/Y добавьте в секцию `trackball`:
+
+```devicetree
+trackball: trackball@0 {
+    cpi = <600>;
+    invert-x;  // Инверсия оси X
+    invert-y;  // Инверсия оси Y
+    swap-xy;   // Поменять оси местами
+};
+```
+
+---
+
+### Ссылки на документацию
+
+**ZMK Input Processors:**
+- [Input Processors Overview](https://zmk.dev/docs/keymaps/input-processors)
+- [Scaler Input Processor](https://zmk.dev/docs/keymaps/input-processors/scaler)
+- [Input Processor Usage](https://zmk.dev/docs/keymaps/input-processors/usage)
+
+**badjeff/zmk-pmw3610-driver:**
+- [GitHub Repository](https://github.com/badjeff/zmk-pmw3610-driver)
+- [README с примерами](https://github.com/badjeff/zmk-pmw3610-driver/blob/main/README.md)
+
+---
+
+### Проверка работы
+
+После сборки и прошивки клавиатуры:
+
+1. **Базовый слой (0):** Скролл работает с обычной скоростью
+2. **Удерживайте Calculator (слой 1):** Скорость скролла должна замедлиться в 3 раза
+3. **Отпустите Calculator:** Скорость восстановится к нормальной
 
 ---
 
@@ -39,151 +295,8 @@ KozZzi adopted
 
 ---
 
-## Добавленные файлы
-
-### 1. `.github/workflows/draw_keymaps.yaml`
-
-**Reusable workflow** для автоматической генерации SVG-схем клавиатуры.
-
-**Что делает:**
-- Запускается при каждой сборке прошивки
-- Парсит `config/charybdis.keymap`
-- Генерирует `charybdis.svg` и `charybdis.yaml` в папке `keymap-drawer/`
-- Автоматически коммитит изменения
-
-**Особенности:**
-- Использует `amend_commit: true` - перезаписывает последний коммит, а не создает новый
-- Поддерживает west modules для ZMK
-- Кастомные биндинги мыши и макросов
-
-### 2. `keymap-drawer/config.yaml`
-
-**Конфигурация внешнего вида** генерируемой SVG-схемы.
-
-**Настройки:**
-- **Размеры клавиш:** 60x56 px
-- **Разрыв между половинами:** 30 px
-- **Тема:** auto (автоматическая смена светлой/темной)
-- **Комбо-диаграммы:** отдельные, масштаб x2
-- **Маппинг ZMK-клавиш:** сокращенные названия
-
-### 3. `config/charybdis.json`
-
-**Физическое описание раскладки** Charybdis 4x6.
-
-**Что содержит:**
-- **Координаты** каждой клавиши (x, y, rotation)
-- **Два layout:** `default_transform` и `charybdis_6col_layout`
-- **56 клавиш:** 48 основных + 8 тамбовых (с учетом трекбола)
-
-**Назначение:**
-- Используется `keymap-drawer` для определения позиций клавиш
-- Автоматически обнаруживается workflow при наличии в `config/`
-
----
-
-## Измененные файлы
-
-### `.github/workflows/build.yml`
-
-**Изменения структуры:**
-
-1. **Порядок джобов:**
-   - `keymap_images` запускается **первым**
-   - `build` ждет `keymap_images`
-   - `package_with_keymap` ждет обоих
-
-2. **Добавлен `destination: 'both'`:**
-   - SVG сохраняется и в репозиторий, и в артефакты
-
-3. **Новый джоб `package_with_keymap`:**
-   - Скачивает `firmware_BLK.zip`
-   - Скачивает `charybdis.svg`
-   - Распаковывает zip
-   - Добавляет SVG в папку с UF2
-   - Запаковывает обратно
-   - Загружает как `firmware_BLK_SVG`
-
----
-
-## Результат
-
-После каждого коммита в папке `keymap-drawer/` автоматически обновляются:
-
-- **`charybdis.svg`** - визуальная схема раскладки
-- **`charybdis.yaml`** - YAML-описание раскладки
-
-### Просмотр схемы
-
-Схему можно просматривать:
-- Напрямую в GitHub: [`keymap-drawer/charybdis.svg`](keymap-drawer/charybdis.svg)
-- Вставить в этот README:
-
-```markdown
-![Keymap](keymap-drawer/charybdis.svg)
-```
-
----
-
-## Как работает автогенерация
-
-### Workflow последовательность:
-
-1. **Push/Pull Request** → запуск GitHub Actions
-2. **Draw keymaps** → генерация SVG
-3. **Build ZMK firmware** → сборка прошивки
-4. **Package with keymap** → объединение SVG + UF2
-
-### Кастомные биндинги:
-
-Workflow распознает кастомные ZMK-биндинги:
-- **Мышь:** `&mkp LCLK`, `&mkp RCLK`, `&mkp MCLK`, `&mkp MB4`, `&mkp MB5`
-- **Движение мыши:** `&mmv MOVE_UP`, `&mmv MOVE_DOWN`, `&mmv MOVE_LEFT`, `&mmv MOVE_RIGHT`
-- **Скролл:** `&msc MOVE_UP`, `&msc MOVE_DOWN`, `&msc MOVE_LEFT`, `&msc MOVE_RIGHT`
-- **Кастом:** `&HSplit`, `&VSplit`, `&caps_word`, `&mmv_slow`
-- **Макросы:** `&phrase_proshu` ("ПРОШУ ПРОЩЕНИЯ"), `&phrase_spasibo` ("СПАСИБО!")
-
----
-
 ## Кредиты
 
-Интеграция основана на [keymap-drawer](https://github.com/caksoylar/keymap-drawer) by [@caksoylar](https://github.com/caksoylar)
-
----
-
-## Дополнительно
-
-### Отключение amend_commit:
-
-Если не хотите перезаписывать последний коммит, измените в `build.yml`:
-
-```yaml
-keymap_images:
-  permissions:
-    contents: write
-  uses: ./.github/workflows/draw_keymaps.yaml
-  with:
-    amend_commit: false  # Создавать новый коммит
-    destination: 'both'
-    artifact_name: 'keymap_raw_files'
-```
-
-### Изменение настроек визуализации:
-
-Редактируйте `keymap-drawer/config.yaml` для тонкой настройки:
-- Размеры клавиш (`key_w`, `key_h`)
-- Цветовые схемы (`dark_mode`)
-- Шрифты и размеры текста (`glyph_tap_size`, `glyph_hold_size`)
-- Маппинг клавиш (`zmk_keycode_map`)
-
-### Добавление новых кастомных биндингов:
-
-Для распознавания новых макросов или специальных биндингов добавьте их в `KEYMAP_raw_binding_map` в файле `.github/workflows/draw_keymaps.yaml`:
-
-```yaml
-KEYMAP_raw_binding_map: >
-  {
-    "&your_custom_macro": "DISPLAY NAME",
-    "&another_binding": "SHORT NAME"
-  }
-```
+Интеграция основана на:
+- [keymap-drawer](https://github.com/caksoylar/keymap-drawer) by [@caksoylar](https://github.com/caksoylar)
+- [badjeff/zmk-pmw3610-driver](https://github.com/badjeff/zmk-pmw3610-driver) by [@badjeff](https://github.com/badjeff)
