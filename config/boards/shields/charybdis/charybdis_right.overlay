@@ -55,9 +55,17 @@
         spi-max-frequency = <2000000>;
         irq-gpios = <&gpio0 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 
-        /* optional features */
-        scroll-layers = <0>;
-        snipe-layers = <3>;
+        /* 
+         * Настройки скорости скролла:
+         * scroll-layers: слои, на которых трекбол работает в режиме скролла
+         * scroll-divisor-x, scroll-divisor-y: делители для замедления скролла
+         * Чем больше значение, тем медленнее скролл
+         */
+        scroll-layers = <1>;  // Слой 1 (num_and_fun) - режим скролла
+        scroll-divisor-x = <3>;  // Замедление по X в 3 раза
+        scroll-divisor-y = <3>;  // Замедление по Y в 3 раза
+        
+        snipe-layers = <3>;  // Слой 3 - режим точного наведения
     };
 };
 
@@ -65,17 +73,5 @@
   trackball_listener {
     compatible = "zmk,input-listener";
     device = <&trackball>;
-
-    /* Базовый слой (0 - QWERTY): стандартная скорость скролла */
-    base_layer {
-      layers = <0>;
-      input-processors = <&zip_scroll_scaler 1 1>;
-    };
-
-    /* Слой 1 (num_and_fun): скорость скролла уменьшена в 3 раза */
-    slow_scroll_layer {
-      layers = <1>;
-      input-processors = <&zip_scroll_scaler 1 3>;
-    };
   };
 };
