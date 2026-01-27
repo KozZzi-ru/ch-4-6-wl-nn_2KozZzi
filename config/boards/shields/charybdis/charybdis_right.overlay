@@ -65,5 +65,17 @@
   trackball_listener {
     compatible = "zmk,input-listener";
     device = <&trackball>;
+
+    /* Базовый слой (0 - QWERTY): стандартная скорость скролла */
+    base_layer {
+      layers = <0>;
+      input-processors = <&zip_scroll_scaler 1 1>;
+    };
+
+    /* Слой 1 (num_and_fun): скорость скролла уменьшена в 3 раза */
+    slow_scroll_layer {
+      layers = <1>;
+      input-processors = <&zip_scroll_scaler 1 3>;
+    };
   };
 };
