@@ -1,4 +1,4 @@
-# ch-4-6-wl-nn_2KozZzi - полностью рабочий на ChBLK, с моим кеймапом и генерацией раскладки в charybdis.svg (кривой тамб кластер)
+# ch-4-6-wl-nn_2KozZzi - полностью рабочий на ChBLK на inorichi и Питер Джонсон, с моим кеймапом и генерацией раскладки в charybdis.svg (кривой тамб кластер)
 
 4-6 wireless zmk  
 KozZzi adopted
